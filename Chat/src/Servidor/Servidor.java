@@ -20,4 +20,13 @@ public class Servidor extends Thread{
         clientes = new LinkedList<>();
         this.start();
     }
+
+    @Override
+    public void run() {
+        try {
+            sSocket = new ServerSocket(Integer.valueOf(puerto));
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+    }
 }
