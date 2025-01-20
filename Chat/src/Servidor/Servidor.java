@@ -1,6 +1,9 @@
 package Servidor;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.LinkedList;
+
+import javax.swing.JOptionPane;
 
 public class Servidor extends Thread{
     private ServerSocket sSocket;
@@ -23,10 +26,31 @@ public class Servidor extends Thread{
 
     @Override
     public void run() {
+        boolean exit = true;
         try {
             sSocket = new ServerSocket(Integer.valueOf(puerto));
+            ventana.addServer();
+            while (exit) {
+                HiloCliente hCl;
+                Socket socket;
+                socket = sSocket.accept();
+                System.out.println("Conexion aceptada: " + socket);
+                hCl = new HiloCliente(socket, this);
+                hCl.start();
+            }
         } catch (Exception e) {
-            // TODO: handle exception
+            JOptionPane.showMessageDialog(ventana, "Conexion fallida");
+            System.exit(0);
         }
     }
+
+    public LinkedList<String> getUsuarios() {
+        LinkedList<String>users = new LinkedList<>();
+        clientes.stream().forEach(u -> users.add(u.getIde()));
+        return users;
+    }
+
+    public void addLog(String log){
+        ventana.addLog(log);
+    } 
 }

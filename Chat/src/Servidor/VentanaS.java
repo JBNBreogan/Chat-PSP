@@ -1,5 +1,7 @@
 package Servidor;
 
-public class VentanaS {
+import javax.swing.JFrame;
+
+public class VentanaS  extends JFrame{
 
 }
