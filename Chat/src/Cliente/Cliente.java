@@ -4,12 +4,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 
 import javax.swing.JOptionPane;
 
 public class Cliente extends Thread{
-    
+
     private Socket socket;
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
@@ -28,7 +29,7 @@ public class Cliente extends Thread{
         this.start();
     }
 
-    public void escuchar() {
+    public void listen() {
         try {
             while (preparado) {
                 Object aux = ois.readObject();
@@ -50,14 +51,40 @@ public class Cliente extends Thread{
         }
     }
 
-    public void desconectar() {
+    public void ejecutar(LinkedList<String> lista) {
+        String tipo = lista.get(0);
+        switch (tipo) {
+            case "CONEXION_ACEPTADA":
+                id = lista.get(1);
+                ventana.sesionIniciada(id);
+                for (int i = 2; i < lista.size(); i++) {
+                    ventana.addContacto(lista.get(i));
+                }
+                break;
+            case "NUEVO_USUARIO_CONECTADO":
+                ventana.addContacto(lista.get(1));
+                break;
+            case "USUARIO_DESCONECTADO":
+                ventana.eliminarContacto(lista.get(1));
+                break;                
+            case "MENSAJE":
+                ventana.addMensaje(lista.get(1), lista.get(3));
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void enviarMensaje(String cliente_receptor, String mensaje) {
+        LinkedList<String> lista = new LinkedList<>();
+        lista.add("MENSAJE");
+        lista.add(id);
+        lista.add(cliente_receptor);
+        lista.add(mensaje);
         try {
-            oos.close();
-            ois.close();
-            socket.close();  
-            preparado = false;
-        } catch (Exception e) {
-            System.err.println("Error al cerrar los elementos de comunicación del cliente.");
+            oos.writeObject(lista);
+        } catch (IOException ex) {
+            System.out.println("Error de lectura y escritura al enviar mensaje al servidor.");
         }
     }
 
@@ -72,6 +99,17 @@ public class Cliente extends Thread{
         }
     }
 
+    public void disconect() {
+        try {
+            oos.close();
+            ois.close();
+            socket.close();  
+            preparado = false;
+        } catch (Exception e) {
+            System.err.println("Error al cerrar los elementos de comunicación del cliente.");
+        }
+    }
+
     void confirmarDesconexion() {
         LinkedList<String> conexiones = new LinkedList<>();
         conexiones.add("SOLICITUD_DESCONEXION");
@@ -83,6 +121,28 @@ public class Cliente extends Thread{
         }
     }
 
+    public void run() {
+        try {
+            socket = new Socket(host, puerto);
+            oos = new ObjectOutputStream(socket.getOutputStream());
+            ois = new ObjectInputStream(socket.getInputStream());
+            System.out.println("Conexion exitosa!!!!");
+            this.enviarSolicitudConexion(id);
+            this.listen();
+        } catch (UnknownHostException ex) {
+            JOptionPane.showMessageDialog(ventana, "Conexión rehusada, servidor desconocido,\n"
+                    + "puede que haya ingresado una ip incorrecta\n"
+                    + "o que el servidor no este corriendo.\n"
+                    + "Esta aplicación se cerrará.");
+            System.exit(0);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(ventana, "Conexión rehusada, error de Entrada/Salida,\n"
+                    + "puede que haya ingresado una ip o un puerto\n"
+                    + "incorrecto, o que el servidor no este corriendo.\n"
+                    + "Esta aplicación se cerrará.");
+            System.exit(0);
+        }
+    }
 
     String getIde() {
         return id;
