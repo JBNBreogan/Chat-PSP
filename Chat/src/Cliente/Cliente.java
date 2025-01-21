@@ -130,15 +130,15 @@ public class Cliente extends Thread{
             this.enviarSolicitudConexion(id);
             this.listen();
         } catch (UnknownHostException ex) {
-            JOptionPane.showMessageDialog(ventana, "Conexión rehusada, servidor desconocido,\n"
-                    + "puede que haya ingresado una ip incorrecta\n"
-                    + "o que el servidor no este corriendo.\n"
+            JOptionPane.showMessageDialog(ventana, "Conexión rechazada, servidor desconocido,\n"
+                    + "puede que hayas ingresado una ip incorrecta\n"
+                    + "o que el servidor no este iniciado.\n"
                     + "Esta aplicación se cerrará.");
             System.exit(0);
         } catch (IOException ex) {
-            JOptionPane.showMessageDialog(ventana, "Conexión rehusada, error de Entrada/Salida,\n"
-                    + "puede que haya ingresado una ip o un puerto\n"
-                    + "incorrecto, o que el servidor no este corriendo.\n"
+            JOptionPane.showMessageDialog(ventana, "Conexión rechazada, error de Entrada/Salida,\n"
+                    + "puede que hayas ingresado una ip o un puerto\n"
+                    + "incorrecto, o que el servidor no este iniciado.\n"
                     + "Esta aplicación se cerrará.");
             System.exit(0);
         }
