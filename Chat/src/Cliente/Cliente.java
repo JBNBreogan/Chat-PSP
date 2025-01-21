@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import javax.swing.JOptionPane;
 
 public class Cliente extends Thread{
+    
     private Socket socket;
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
