@@ -9,7 +9,11 @@ import java.util.LinkedList;
 
 import javax.swing.JOptionPane;
 
-public class Cliente extends Thread{
+/**
+ * Clase Cliente que maneja la conexión y comunicación con el servidor de chat.
+ * Extiende Thread para permitir la escucha de mensajes en segundo plano.
+ */
+public class Cliente extends Thread {
 
     private Socket socket;
     private ObjectOutputStream oos;
@@ -20,15 +24,26 @@ public class Cliente extends Thread{
     private final String host;
     private final int puerto;
 
-    Cliente(VentanaC ventana, String host, Integer puerto, String nombre) {
+    /**
+     * Constructor de la clase Cliente.
+     * 
+     * @param ventana La interfaz gráfica asociada al cliente.
+     * @param host Dirección del servidor.
+     * @param puerto Puerto del servidor.
+     * @param id Identificador del usuario.
+     */
+    public Cliente(VentanaC ventana, String host, Integer puerto, String id) {
         this.ventana = ventana;        
         this.host = host;
         this.puerto = puerto;
-        this.id = nombre;
+        this.id = id;
         preparado = true;
         this.start();
     }
 
+    /**
+     * Escucha los mensajes entrantes del servidor y los procesa.
+     */
     public void listen() {
         try {
             while (preparado) {
@@ -51,35 +66,46 @@ public class Cliente extends Thread{
         }
     }
 
-    public void ejecutar(LinkedList<String> lista) {
-        String tipo = lista.get(0);
+    /**
+     * Procesa los mensajes recibidos del servidor.
+     * 
+     * @param mensajes Lista de mensajes recibidos.
+     */
+    public void ejecutar(LinkedList<String> mensajes) {
+        String tipo = mensajes.get(0);
         switch (tipo) {
             case "CONEXION_ACEPTADA":
-                id = lista.get(1);
+                id = mensajes.get(1);
                 ventana.sesionIniciada(id);
-                for (int i = 2; i < lista.size(); i++) {
-                    ventana.addContacto(lista.get(i));
+                for (int i = 2; i < mensajes.size(); i++) {
+                    ventana.addContacto(mensajes.get(i));
                 }
                 break;
             case "NUEVO_USUARIO_CONECTADO":
-                ventana.addContacto(lista.get(1));
+                ventana.addContacto(mensajes.get(1));
                 break;
             case "USUARIO_DESCONECTADO":
-                ventana.eliminarContacto(lista.get(1));
+                ventana.eliminarContacto(mensajes.get(1));
                 break;                
             case "MENSAJE":
-                ventana.addMensaje(lista.get(1), lista.get(3));
+                ventana.addMensaje(mensajes.get(1), mensajes.get(3));
                 break;
             default:
                 break;
         }
     }
 
-    public void enviarMensaje(String cliente_receptor, String mensaje) {
+    /**
+     * Envía un mensaje a otro cliente a través del servidor.
+     * 
+     * @param cliente El destinatario del mensaje.
+     * @param mensaje El contenido del mensaje.
+     */
+    public void enviarMensaje(String cliente, String mensaje) {
         LinkedList<String> lista = new LinkedList<>();
         lista.add("MENSAJE");
         lista.add(id);
-        lista.add(cliente_receptor);
+        lista.add(cliente);
         lista.add(mensaje);
         try {
             oos.writeObject(lista);
@@ -88,10 +114,15 @@ public class Cliente extends Thread{
         }
     }
 
-    private void enviarSolicitudConexion(String identificador) {
+    /**
+     * Envía una solicitud de conexión al servidor.
+     * 
+     * @param id ID del usuario.
+     */
+    private void enviarSolicitudConexion(String id) {
         LinkedList<String> conexiones = new LinkedList<>();
         conexiones.add("SOLICITUD_CONEXION");
-        conexiones.add(identificador);
+        conexiones.add(id);
         try {
             oos.writeObject(conexiones);
         } catch (IOException ex) {
@@ -99,6 +130,9 @@ public class Cliente extends Thread{
         }
     }
 
+    /**
+     * Desconecta al cliente del servidor y cierra los recursos.
+     */
     public void disconect() {
         try {
             oos.close();
@@ -110,6 +144,9 @@ public class Cliente extends Thread{
         }
     }
 
+    /**
+     * Confirma la desconexión del cliente al servidor.
+     */
     void confirmarDesconexion() {
         LinkedList<String> conexiones = new LinkedList<>();
         conexiones.add("SOLICITUD_DESCONEXION");
@@ -121,6 +158,9 @@ public class Cliente extends Thread{
         }
     }
 
+    /**
+     * Método principal del hilo que maneja la conexión con el servidor.
+     */
     public void run() {
         try {
             socket = new Socket(host, puerto);
@@ -144,7 +184,12 @@ public class Cliente extends Thread{
         }
     }
 
-    String getIde() {
+    /**
+     * Obtiene el identificador del cliente.
+     * 
+     * @return ID del cliente.
+     */
+    public String getIde() {
         return id;
     }
 }

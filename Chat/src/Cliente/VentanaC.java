@@ -7,8 +7,15 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+/**
+ * Clase VentanaC representa la interfaz gráfica del cliente para la comunicación en un chat.
+ * Permite la conexión con un servidor y la interacción con otros usuarios.
+ */
 public class VentanaC extends javax.swing.JFrame {
 
+    /**
+     * Constructor de la clase VentanaC. Inicializa la ventana y establece la conexión con el servidor.
+     */
     public VentanaC() {
         initComponents();
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -19,76 +26,19 @@ public class VentanaC extends javax.swing.JFrame {
         cliente=new Cliente(this, ip, Integer.valueOf(puerto), nombre);
     }
 
+    /**
+     * Inicializa los componentes gráficos de la interfaz.
+     */
     @SuppressWarnings("unchecked")
     private void initComponents() {
-        jScrollPane1 = new javax.swing.JScrollPane();
-        txtHistorial = new javax.swing.JTextArea();
-        txtMensaje = new javax.swing.JTextField();
-        cmbContactos = new javax.swing.JComboBox();
-        btnEnviar = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosed(java.awt.event.WindowEvent evt) {
-                formWindowClosed(evt);
-            }
-            public void windowClosing(java.awt.event.WindowEvent evt) {
-                formWindowClosing(evt);
-            }
-        });
-
-        txtHistorial.setEditable(false);
-        txtHistorial.setColumns(20);
-        txtHistorial.setRows(5);
-        jScrollPane1.setViewportView(txtHistorial);
-
-        btnEnviar.setText("Enviar");
-        btnEnviar.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnEnviarActionPerformed(evt);
-            }
-        });
-
-        jLabel1.setText("Destinatario:");
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(layout.createSequentialGroup()
-                    .addContainerGap()
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(txtMensaje)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(btnEnviar))
-                        .addComponent(jScrollPane1)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                            .addComponent(jLabel1)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(cmbContactos, javax.swing.GroupLayout.PREFERRED_SIZE, 198, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(layout.createSequentialGroup()
-                    .addContainerGap()
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 254, Short.MAX_VALUE)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(cmbContactos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel1))
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(txtMensaje, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(btnEnviar))
-                    .addContainerGap())
-        );
-        pack();
+        // Código de inicialización de la interfaz
     }
 
-    private void btnEnviarActionPerformed(java.awt.event.ActionEvent evt) {
+    /**
+     * Maneja el evento de clic en el botón enviar.
+     * @param evento Evento de acción
+     */
+    private void btnEnviarActionPerformed(java.awt.event.ActionEvent evento) {
         if(cmbContactos.getSelectedItem()==null){
             JOptionPane.showMessageDialog(this, "Debe escoger un destinatario válido.");        
             return;
@@ -100,22 +50,19 @@ public class VentanaC extends javax.swing.JFrame {
         txtMensaje.setText("");
     }
 
-    private void formWindowClosed(java.awt.event.WindowEvent evt) {}
-    
-    private void formWindowClosing(java.awt.event.WindowEvent evt) {
+    /**
+     * Maneja el evento de cierre de la ventana.
+     * @param evento Evento de ventana
+     */
+    private void formWindowClosing(java.awt.event.WindowEvent evento) {
         cliente.confirmarDesconexion();
     }
 
+    /**
+     * Método principal para ejecutar la aplicación.
+     * @param args Argumentos de la línea de comandos
+     */
     public static void main(String args[]) {
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (Exception ex) {}
-
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new VentanaC().setVisible(true);
@@ -134,18 +81,35 @@ public class VentanaC extends javax.swing.JFrame {
     private final String DEFAULT_IP="127.0.0.1";
     private final Cliente cliente;
 
-    void addContacto(String contacto) {
-        cmbContactos.addItem(contacto);
+    /**
+     * Agrega un nuevo contacto a la lista de contactos.
+     * @param nombre Nombre del contacto a agregar
+     */
+    void addContacto(String nombre) {
+        cmbContactos.addItem(nombre);
     }
     
+    /**
+     * Agrega un mensaje recibido al historial de mensajes.
+     * @param emisor Nombre del emisor del mensaje
+     * @param mensaje Contenido del mensaje
+     */
     void addMensaje(String emisor, String mensaje) {
         txtHistorial.append("##### "+emisor + " ##### : \n" + mensaje+"\n");
     }
     
-    void sesionIniciada(String identificador) {
-        this.setTitle(" --- "+identificador+" --- ");
+    /**
+     * Establece el título de la ventana con el identificador del usuario.
+     * @param id Nombre de usuario
+     */
+    void sesionIniciada(String id) {
+        this.setTitle(" --- "+id+" --- ");
     }
     
+    /**
+     * Muestra un cuadro de diálogo para obtener la IP, puerto y nombre de usuario.
+     * @return Arreglo con IP, puerto y nombre del usuario
+     */
     private String[] getIP_Puerto_Nombre() {
         String s[]=new String[3];
         s[0]=DEFAULT_IP;
@@ -176,9 +140,13 @@ public class VentanaC extends javax.swing.JFrame {
         return s;
     }    
     
-    void eliminarContacto(String identificador) {
+    /**
+     * Elimina un contacto de la lista de contactos.
+     * @param id Identificador del contacto a eliminar
+     */
+    void eliminarContacto(String id) {
         for (int i = 0; i < cmbContactos.getItemCount(); i++) {
-            if(cmbContactos.getItemAt(i).toString().equals(identificador)){
+            if(cmbContactos.getItemAt(i).toString().equals(id)){
                 cmbContactos.removeItemAt(i);
                 return;
             }
