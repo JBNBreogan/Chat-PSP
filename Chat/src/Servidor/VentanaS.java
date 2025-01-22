@@ -7,10 +7,21 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+/**
+ * Clase que ejecuta la parte gráfica del servidor
+ * @author Breogan
+ */
 public class VentanaS  extends JFrame{
+
+    /** Puerto por defecto del servidor */
     private final String DEFAULT_PORT="10101";
+
+    /** Servidor a ejecutar */
     private final Servidor servidor;
 
+    /**
+     * Constructor de la ventana
+     */
     public VentanaS() {
         initComponents();
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -18,6 +29,9 @@ public class VentanaS  extends JFrame{
         servidor=new Servidor(puerto, this);
     }
 
+    /**
+     * Inicia los componentes gráficos de la ventana
+     */
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -35,24 +49,16 @@ public class VentanaS  extends JFrame{
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 284, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 315, Short.MAX_VALUE)
-                .addContainerGap())
-        );
+        layout.setHorizontalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup().addContainerGap().addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 284, Short.MAX_VALUE).addContainerGap()));
+        layout.setVerticalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGroup(layout.createSequentialGroup().addContainerGap().addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 315, Short.MAX_VALUE).addContainerGap()));
 
         pack();
     }
 
+    /**
+     * Ejecuta toda la lógica de la ventana y del servidor
+     * @param args
+     */
     public static void main(String args[]) {
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -70,9 +76,6 @@ public class VentanaS  extends JFrame{
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(VentanaS.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
-
-        /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new VentanaS().setVisible(true);
@@ -80,14 +83,24 @@ public class VentanaS  extends JFrame{
         });
     }
 
+    /** Panel de scroll */
     private javax.swing.JScrollPane jScrollPane1;
+    /** Área de texto de los clientes */
     private javax.swing.JTextArea txtClientes;
 
+    /**
+     * Añade un log al servidor, (usado para mostrar los usuarios conectados)
+     * @param texto Texto a escribir
+     */
     void addLog(String texto) {
         txtClientes.append(texto);
     }
 
-    
+    /**
+     * Devuelve el puerto en caso de querer usar uno personalizado, en otro caso
+     * devuelve el por defecto
+     * @return Puerto a usar
+     */
     private String getPuerto() {
         String p=DEFAULT_PORT;
         JTextField puerto = new JTextField(20);
