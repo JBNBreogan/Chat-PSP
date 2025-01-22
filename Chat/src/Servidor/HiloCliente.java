@@ -6,119 +6,168 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.LinkedList;
 
-public class HiloCliente extends Thread{
-    private final Socket socket;   
+/**
+ * La clase HiloCliente maneja la comunicación con un cliente específico en un servidor de chat.
+ * Se encarga de escuchar permanentemente los mensajes del cliente y gestionar solicitudes 
+ * de conexión, desconexión y envío de mensajes a otros clientes.
+ */
+public class HiloCliente extends Thread {
+    private final Socket socket;
+    private ObjectOutputStream objectOutputStream;
+    private ObjectInputStream objectInputStream;
     private final Servidor server;
-    private String id; 
-    private ObjectInputStream ois;            
-    private ObjectOutputStream oos;
-    private boolean preparado;
+    private String identificador;
+    private boolean escuchando;
 
-    public String getIde() {
-        return id;
-    }
-
-    public HiloCliente(Socket socket,Servidor server) {
-        this.server=server;
+    /**
+     * Constructor que inicializa el socket y el servidor con los cuales se establecerá la comunicación.
+     * También crea los streams de entrada y salida de datos.
+     * 
+     * @param socket El socket a través del cual se comunica el cliente.
+     * @param server La referencia al servidor que maneja a todos los clientes.
+     */
+    public HiloCliente(Socket socket, Servidor server) {
+        this.server = server;
         this.socket = socket;
         try {
-            oos = new ObjectOutputStream(socket.getOutputStream());
-            ois = new ObjectInputStream(socket.getInputStream());
+            objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            objectInputStream = new ObjectInputStream(socket.getInputStream());
         } catch (IOException ex) {
-            System.err.println("Error en la inicialización.");
+            System.err.println("Error al inicializar los streams de entrada y salida.");
         }
     }
 
-    public void listen(){        
-        preparado=true;
-        while(preparado){
+    /**
+     * Método que cierra la conexión con el cliente al cerrar el socket y detener el proceso de escucha.
+     */
+    public void desconnectar() {
+        try {
+            socket.close();
+            escuchando = false;
+        } catch (IOException ex) {
+            System.err.println("Error al cerrar el socket de comunicación con el cliente.");
+        }
+    }
+
+    /**
+     * Método principal del hilo. Se ejecuta continuamente para escuchar lo que el cliente está enviando.
+     */
+    @Override
+    public void run() {
+        try {
+            escuchar();
+        } catch (Exception ex) {
+            System.err.println("Error al ejecutar el método de escucha del hilo del cliente.");
+        }
+        desconnectar();
+    }
+
+    /**
+     * Escucha de forma constante los mensajes enviados por el cliente a través del socket.
+     * Si recibe un objeto de tipo LinkedList, se ejecutan las acciones correspondientes.
+     */
+    public void escuchar() {
+        escuchando = true;
+        while (escuchando) {
             try {
-                Object aux=ois.readObject();
-                if(aux instanceof LinkedList){
-                    ejecute((LinkedList<String>)aux);
+                Object aux = objectInputStream.readObject();
+                if (aux instanceof LinkedList) {
+                    ejecutar((LinkedList<String>) aux);
                 }
-            } catch (Exception e) {                    
+            } catch (Exception e) {
                 System.err.println("Error al leer lo enviado por el cliente.");
             }
         }
     }
 
-    public void ejecute(LinkedList<String> lista){
-        String tipo=lista.get(0);
+    /**
+     * Ejecuta acciones en función del tipo de solicitud recibida del cliente, como conexión, 
+     * desconexión o envío de mensajes a otros clientes.
+     * 
+     * @param lista Lista de cadenas que contiene los datos recibidos desde el cliente.
+     */
+    public void ejecutar(LinkedList<String> lista) {
+        String tipo = lista.get(0);
         switch (tipo) {
             case "SOLICITUD_CONEXION":
-                confirmConnection(lista.get(1));
+                confirmarConexion(lista.get(1));
                 break;
             case "SOLICITUD_DESCONEXION":
-                confirmarDesconnection();
-                break;                
+                confirmarDesConexion();
+                break;
             case "MENSAJE":
-                String destinatario=lista.get(2);
-                server.clientes.stream().filter(h -> (destinatario.equals(h.getIde()))).forEach((h) -> h.sendMessage(lista));
+                String destinatario = lista.get(2);
+                server.clientes
+                        .stream()
+                        .filter(h -> destinatario.equals(h.getIdentificador()))
+                        .forEach(h -> h.enviarMensaje(lista));
                 break;
             default:
                 break;
         }
     }
 
-    private void confirmConnection(String identificador) {
+    /**
+     * Envía un mensaje al cliente a través del stream de salida del socket.
+     * 
+     * @param lista Lista de cadenas que representa el mensaje a ser enviado.
+     */
+    private void enviarMensaje(LinkedList<String> lista) {
+        try {
+            objectOutputStream.writeObject(lista);
+        } catch (Exception e) {
+            System.err.println("Error al enviar el objeto al cliente.");
+        }
+    }
+
+    /**
+     * Confirma la conexión de un nuevo cliente, notificando al servidor y a los demás
+     * clientes de su presencia.
+     * 
+     * @param identificador Identificador único asignado al cliente conectado.
+     */
+    private void confirmarConexion(String identificador) {
         Servidor.idClientes++;
-        this.id=Servidor.idClientes+" - "+id;
-        LinkedList<String> lista=new LinkedList<>();
+        this.identificador = Servidor.idClientes + " - " + identificador;
+        LinkedList<String> lista = new LinkedList<>();
         lista.add("CONEXION_ACEPTADA");
-        lista.add(this.id);
+        lista.add(this.identificador);
         lista.addAll(server.getUsuarios());
-        sendMessage(lista);
-        server.addLog("\nNuevo cliente: "+this.id);
-        LinkedList<String> auxLista=new LinkedList<>();
+        enviarMensaje(lista);
+        server.addLog("\nNuevo cliente: " + this.identificador);
+
+        LinkedList<String> auxLista = new LinkedList<>();
         auxLista.add("NUEVO_USUARIO_CONECTADO");
-        auxLista.add(this.id);
-        server.clientes
-                .stream()
-                .forEach(cliente -> cliente.sendMessage(auxLista));
+        auxLista.add(this.identificador);
+        server.clientes.forEach(cliente -> cliente.enviarMensaje(auxLista));
         server.clientes.add(this);
     }
 
+    /**
+     * Retorna el identificador del cliente dentro del sistema.
+     * 
+     * @return El identificador único del cliente.
+     */
+    public String getIdentificador() {
+        return identificador;
+    }
 
-    private void confirmarDesconnection() {
-        LinkedList<String> auxLista=new LinkedList<>();
+    /**
+     * Gestiona la desconexión de un cliente, notificando al servidor y a los demás clientes
+     * para que lo eliminen de su lista de contactos.
+     */
+    private void confirmarDesConexion() {
+        LinkedList<String> auxLista = new LinkedList<>();
         auxLista.add("USUARIO_DESCONECTADO");
-        auxLista.add(this.id);
-        server.addLog("\nEl cliente \""+this.id+"\" se ha desconectado.");
-        this.desconnect();
-        for(int i=0;i<server.clientes.size();i++){
-            if(server.clientes.get(i).equals(this)){
+        auxLista.add(this.identificador);
+        server.addLog("\nEl cliente \"" + this.identificador + "\" se ha desconectado.");
+        this.desconnectar();
+        for (int i = 0; i < server.clientes.size(); i++) {
+            if (server.clientes.get(i).equals(this)) {
                 server.clientes.remove(i);
                 break;
             }
         }
-        server.clientes.stream().forEach(h -> h.sendMessage(auxLista));        
-    }
-
-    private void sendMessage(LinkedList<String> lista){
-        try {
-            oos.writeObject(lista);            
-        } catch (IOException e) {
-            System.err.println("Error al enviar el objeto al cliente.");
-        }
-    }    
-
-    public void desconnect() {
-        try {
-            socket.close();
-            preparado=false;
-        } catch (IOException ex) {
-            System.err.println("Error al cerrar el socket de comunicación con el cliente.");
-        }
-    }
-
-    public void run() {				
-        try{
-           listen();
-        } catch (Exception ex) {
-            System.err.println("Error al llamar al método readLine del hilo del cliente.");
-        }
-        desconnect();
+        server.clientes.forEach(h -> h.enviarMensaje(auxLista));
     }
 }
-

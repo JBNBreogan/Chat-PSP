@@ -46,7 +46,7 @@ public class Servidor extends Thread{
 
     public LinkedList<String> getUsuarios() {
         LinkedList<String>users = new LinkedList<>();
-        clientes.stream().forEach(u -> users.add(u.getIde()));
+        clientes.stream().forEach(u -> users.add(u.getIdentificador()));
         return users;
     }
 
